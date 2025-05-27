@@ -2,6 +2,7 @@ import express from "express";
 import { initializeDatabase } from "./config/database";
 import identityRoutes from "./routes/identityRoutes";
 import cors from "cors";
+import { AppDataSource } from "./config/database";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,15 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/", identityRoutes);
+
+// In your app.ts
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    db: AppDataSource.isInitialized ? 'connected' : 'disconnected'
+  });
+});
+
 
 const startServer = async () => {
   try {

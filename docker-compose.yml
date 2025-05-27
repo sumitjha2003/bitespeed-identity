@@ -1,45 +1,33 @@
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: bitespeed
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d bitespeed"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - app-network
+  - type: web
+    name: bitespeed-app
+    runtime: docker
+    dockerfilePath: Dockerfile
+    env: docker
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: bitespeed-db
+          property: connectionString
+      - key: DB_PORT
+        value: 5432
+      - key: DB_USER
+        fromDatabase:
+          name: bitespeed-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: bitespeed-db
+          property: password
+      - key: DB_NAME
+        value: bitespeed
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
+    plan: free
 
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: bitespeed
-      NODE_ENV: production
-    networks:
-      - app-network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  app-network:
-    driver: bridge
+  - type: postgres
+    name: bitespeed-db
+    plan: free
+    databaseName: bitespeed
+    user: postgres
