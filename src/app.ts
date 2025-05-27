@@ -1,4 +1,5 @@
 import express from "express";
+import { Request, Response } from "express";
 import { initializeDatabase } from "./config/database";
 import identityRoutes from "./routes/identityRoutes";
 import cors from "cors";
@@ -13,7 +14,7 @@ app.use(express.json());
 app.use("/", identityRoutes);
 
 // In your app.ts
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ 
     status: 'OK',
     db: AppDataSource.isInitialized ? 'connected' : 'disconnected'

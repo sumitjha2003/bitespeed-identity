@@ -1,28 +1,25 @@
-# Stage 1: Build
+# Stage 1: Builder
 FROM node:16-alpine AS builder
 WORKDIR /app
+
+# Install ALL dependencies (including devDependencies) for building
 COPY package*.json ./
-RUN npm ci --only=production # Install only production deps
+RUN npm ci  # This installs both dependencies and devDependencies
+
+# Copy source and build
 COPY . .
 RUN npm run build
 
-# Stage 2: Run
+# Stage 2: Runtime
 FROM node:16-alpine
 WORKDIR /app
 
-# Install dependencies for production only
+# Install ONLY production dependencies
 COPY --from=builder /app/package*.json ./
-RUN npm ci --only=production --omit=dev
+RUN npm ci --only=production
 
-# Copy built files from builder
+# Copy built files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/.env.production ./.env 
-
-# Security hardening
-RUN apk add --no-cache dumb-init && \
-    chown -R node:node /app
-USER node
 
 EXPOSE 3000
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "dist/app.js"]
