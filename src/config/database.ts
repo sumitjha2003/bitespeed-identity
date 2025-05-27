@@ -6,21 +6,15 @@ const isUsingUrl = !!process.env.DATABASE_URL;
 
 export const AppDataSource = new DataSource({
   type: "postgres",
-  ...(isUsingUrl
-    ? {
-        url: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false, // Required for Render
-        },
-      }
-    : {
-        host: process.env.DB_HOST || "localhost",
-        port: parseInt(process.env.DB_PORT || "5432"),
-        username: process.env.DB_USER || "postgres",
-        password: process.env.DB_PASSWORD || "postgres",
-        database: process.env.DB_NAME || "bitespeed",
-      }),
-  synchronize: false,
+  url: process.env.DATABASE_URL, // Use full connection URL
+  // OR separately:
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || "5432"),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+    
+  
   logging: false,
   entities: [Contact],
   extra: {
@@ -30,7 +24,9 @@ export const AppDataSource = new DataSource({
   },
   migrations: ["dist/migrations/*.js"],
   migrationsRun: true,
+  
   migrationsTableName: "migrations",
+  synchronize: false,
 });
 
 export const initializeDatabase = async () => {
